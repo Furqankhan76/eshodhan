@@ -34,7 +34,7 @@ class OnBoardingScreen extends StatelessWidget {
         ),
       ),
       trailing: Text(
-        'Skip',
+        '',
         style: TextStyle(
           fontSize: 16,
           color: kDarkBlueColor,

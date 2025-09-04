@@ -18,6 +18,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _pass = TextEditingController();
   final _confirm = TextEditingController();
 
+  bool _obscurePass = true;
+  bool _obscureConfirm = true;
+  String? _confirmError;
+
   @override
   void dispose() {
     _name.dispose();
@@ -27,14 +31,18 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     super.dispose();
   }
 
+  void _validateConfirm() {
+    if (_confirm.text.isNotEmpty && _confirm.text != _pass.text) {
+      setState(() => _confirmError = "Passwords do not match");
+    } else {
+      setState(() => _confirmError = null);
+    }
+  }
+
   void _toast(String msg) {
     Fluttertoast.showToast(
       msg: msg,
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM,
-      backgroundColor: Colors.black87,
-      textColor: Colors.white,
-      fontSize: 14,
+   
     );
   }
 
@@ -48,7 +56,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
   Future<bool> _handlePop() async {
     _clearFieldsAndUnfocus();
-    return true; // allow pop
+    return true;
   }
 
   @override
@@ -57,16 +65,16 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final theme = Theme.of(context);
     final kbOpen = MediaQuery.of(context).viewInsets.bottom > 0;
 
-    // listen for error/success
+    // Listen for error/success
     ref.listen(signupControllerProvider, (prev, next) {
       if (next.error != null && next.error != prev?.error) {
         _toast(next.error!);
         ref.read(signupControllerProvider.notifier).clearError();
       }
       if (next.signedUp && next.signedUp != (prev?.signedUp ?? false)) {
-        _toast("Account created successfully!");
+        _toast("Registration successful!");
         _clearFieldsAndUnfocus();
-        Navigator.of(context).pop(); // back to login
+        context.go('/home'); // Navigate to home instead of pop
       }
     });
 
@@ -82,7 +90,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 40),
               child: Column(
                 children: [
-                  // Centered content (match LoginScreen)
                   Expanded(
                     child: Center(
                       child: ConstrainedBox(
@@ -104,14 +111,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                               const SizedBox(height: 16),
                             ],
 
-                            // Title
                             Text(
                               'Sign Up',
                               style: theme.textTheme.headlineMedium,
                             ),
                             const SizedBox(height: 20),
 
-                            // Full name
                             TextField(
                               controller: _name,
                               textAlign: TextAlign.left,
@@ -126,7 +131,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             ),
                             const SizedBox(height: 12),
 
-                            // Email
                             TextField(
                               controller: _email,
                               keyboardType: TextInputType.emailAddress,
@@ -142,10 +146,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             ),
                             const SizedBox(height: 12),
 
-                            // Password
                             TextField(
                               controller: _pass,
-                              obscureText: true,
+                              obscureText: _obscurePass,
+                              onChanged: (_) => _validateConfirm(),
                               textAlign: TextAlign.left,
                               style: theme.textTheme.bodyMedium,
                               decoration: InputDecoration(
@@ -154,14 +158,24 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePass
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                  ),
+                                  onPressed: () {
+                                    setState(() => _obscurePass = !_obscurePass);
+                                  },
+                                ),
                               ),
                             ),
                             const SizedBox(height: 12),
 
-                            // Confirm password
                             TextField(
                               controller: _confirm,
-                              obscureText: true,
+                              obscureText: _obscureConfirm,
+                              onChanged: (_) => _validateConfirm(),
                               textAlign: TextAlign.left,
                               style: theme.textTheme.bodyMedium,
                               decoration: InputDecoration(
@@ -170,11 +184,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
+                                errorText: _confirmError,
+
                               ),
                             ),
                             const SizedBox(height: 16),
 
-                            // Create account button
                             SizedBox(
                               width: double.infinity,
                               height: 52,
@@ -202,6 +217,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                         ref
                                             .read(signupControllerProvider.notifier)
                                             .signup(
+                                              name: name, // ADDED name parameter
                                               email: email,
                                               password: pass,
                                               confirm: confirm,
@@ -218,9 +234,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                       )
                                     : Text(
                                         'Create account',
-                                        style: theme.textTheme.labelLarge?.copyWith(
-                                          color: Colors.white,
-                                        ),
+                                        style: theme.textTheme.labelLarge
+                                            ?.copyWith(color: Colors.white),
                                       ),
                               ),
                             ),
@@ -230,7 +245,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     ),
                   ),
 
-                  // Footer pinned at bottom (centered)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -242,7 +256,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       GestureDetector(
                         onTap: () {
                           _clearFieldsAndUnfocus();
-                         Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const LoginScreen(),
+                            ),
+                          );
                         },
                         child: Text(
                           'Log In',

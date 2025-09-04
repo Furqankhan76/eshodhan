@@ -1,4 +1,4 @@
-
+import 'package:dio/dio.dart';
 import 'package:eshodhan/src/features/login/models/loginresponse.dart';
 import 'package:eshodhan/src/utils/config/dio/dio_client.dart';
 import 'package:eshodhan/src/utils/constants/endpoints.dart';
@@ -8,10 +8,7 @@ Future<LoginResponseModel> loginUser(String username, String password) async {
   try {
     final response = await dioClient.post(
       ApiEndpoints.loginUrl,
-      data: {
-        "username": username,
-        "password": password,
-      },
+      data: {"username": username, "password": password},
     );
 
     final loginResponse = LoginResponseModel.fromJson(response.data);
@@ -28,8 +25,11 @@ Future<LoginResponseModel> loginUser(String username, String password) async {
 
     print('Login successful: ${loginResponse.userEmail}');
     return loginResponse;
-  } catch (err) {
+  } on DioException catch (err) {
     logger.e("Login error: $err");
-    throw Exception("Login failed: $err");
+    if (err.response?.statusCode == 403) {
+      throw (("Invalid credentials"));
+    }
+    throw (("Login failed: ${err.message}"));
   }
 }

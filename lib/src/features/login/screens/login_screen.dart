@@ -5,6 +5,7 @@ import 'package:eshodhan/src/features/signup/screens/signup_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -16,6 +17,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _identifier = TextEditingController();
   final _pass = TextEditingController();
+  bool _obscurePass = true; // 👈 track password visibility
 
   @override
   void dispose() {
@@ -43,9 +45,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
       if (next.loggedIn && next.loggedIn != (prev?.loggedIn ?? false)) {
         Fluttertoast.showToast(msg: "Welcome back!");
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
+       GoRouter.of(context).go('/home');
       }
     });
 
@@ -101,9 +101,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           const SizedBox(height: 12),
 
                           // Password
-                          TextField(
+                         TextField(
                             controller: _pass,
-                            obscureText: true,
+                            obscureText: _obscurePass,
                             textAlign: TextAlign.left,
                             style: theme.textTheme.bodyMedium,
                             decoration: InputDecoration(
@@ -111,6 +111,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               labelStyle: theme.textTheme.labelLarge,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePass
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                  color: Colors.grey,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePass = !_obscurePass;
+                                  });
+                                },
                               ),
                             ),
                           ),

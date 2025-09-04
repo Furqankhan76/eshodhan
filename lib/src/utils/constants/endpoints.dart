@@ -5,6 +5,6 @@ class ApiEndpoints {
   static const String registerUrl = "/wp-json/api/v1/register";
   static const String forgotPassword = '/wp-json/api/v1/forgot-password';
 }
-                  
-                  // logger is used for logging errors
+
+// logger is used for logging errors
 final logger = Logger();
